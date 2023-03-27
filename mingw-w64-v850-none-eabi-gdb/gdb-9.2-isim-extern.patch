@@ -1,0 +1,97 @@
+From c4df5bbeb87a445dbc84b9ed677b2c721e5051b5 Mon, 27 Mar 2023 15:49:49 +0900
+From: Sebastian Huber <sebastian.huber@embedded-brains.de>
+Date: Thu, 2 Jul 2020 18:10:49 +0200
+Subject: [PATCH] sim/igen: Fix linker error with -fno-common
+
+
+GCC 10 enables -fno-common by default.  This resulted in multiple
+definition linker errors since a global variable was declared and
+defined in a header file:
+
+  ld: libsim.a(idecode.o):sim/v850/idecode.h:71: multiple definition of
+  `idecode_issue'; libsim.a(irun.o):sim/v850/idecode.h:71: first defined
+  here
+
+  ld: libsim.a(engine.o):sim/v850/idecode.h:71: multiple definition of
+  `idecode_issue'; libsim.a(irun.o):sim/v850/idecode.h:71: first defined
+  here
+
+  ld: libsim.a(support.o):sim/v850/idecode.h:71: multiple definition of
+  `idecode_issue'; libsim.a(irun.o):sim/v850/idecode.h:71: first defined
+  here
+
+  ld: libsim.a(semantics.o):sim/v850/idecode.h:71: multiple definition
+  of `idecode_issue'; libsim.a(irun.o):sim/v850/idecode.h:71: first
+  defined here
+
+sim/igen
+
+        PR sim/26194
+
+        * lf.h (lf_get_file_type): Declare.
+        * lf.c (lf_get_file_type): Define.
+        * gen-idecode.c (print_idecode_issue_function_header): Use
+        lf_get_file_type() to issue an extern variable declaration in
+        case of header files.
+
+diff --git a/sim/igen/ChangeLog b/sim/igen/ChangeLog
+index beda37b..f3f50f4 100644
+--- a/sim/igen/ChangeLog
++++ b/sim/igen/ChangeLog
+@@ -1,3 +1,12 @@
++2020-07-03  Sebastian Huber  <sebastian.huber@embedded-brains.de>
++
++       PR sim/26194
++       * lf.h (lf_get_file_type): Declare.
++       * lf.c (lf_get_file_type): Define.
++       * gen-idecode.c (print_idecode_issue_function_header): Use
++       lf_get_file_type() to issue an extern variable declaration in
++       case of header files.
++
+ 2019-12-19  Tom Tromey  <tromey@adacore.com>
+ 
+        PR build/24572:
+diff --git a/sim/igen/gen-idecode.c b/sim/igen/gen-idecode.c
+index b8f8ca1..741498a 100644
+--- a/sim/igen/gen-idecode.c
++++ b/sim/igen/gen-idecode.c
+@@ -930,6 +930,8 @@
+                                        "INLINE_IDECODE", "\n");
+       break;
+     case is_function_variable:
++      if (lf_get_file_type (file) == lf_is_h)
++       lf_printf (file, "extern ");
+       print_semantic_function_type (file);
+       lf_printf (file, " (*");
+       break;
+diff --git a/sim/igen/lf.c b/sim/igen/lf.c
+index 0f377d4..937e3d9 100644
+--- a/sim/igen/lf.c
++++ b/sim/igen/lf.c
+@@ -86,6 +86,13 @@
+ }
+ 
+ 
++lf_file_type
++lf_get_file_type (const lf *file)
++{
++  return file->type;
++}
++
++
+ void
+ lf_close (lf *file)
+ {
+diff --git a/sim/igen/lf.h b/sim/igen/lf.h
+index 54b4dcd..6d86fac 100644
+--- a/sim/igen/lf.h
++++ b/sim/igen/lf.h
+@@ -54,6 +54,8 @@
+    lf_file_references file_references,
+    lf_file_type type, const char *program);
+ 
++extern lf_file_type lf_get_file_type (const lf *file);
++
+ extern void lf_close (lf *file);
+ 
+ 
