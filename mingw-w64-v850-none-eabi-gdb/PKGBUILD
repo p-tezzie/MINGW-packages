@@ -36,7 +36,7 @@ sha256sums=(
     'f70cc0a0633d01adf777eb57a82f8c9880f6511d55e44c1dc415ddebc7467e0b'
     'dcfbfb2e3fc90a51e11202529e34c1b3dcc17e352067ffdfc58b63c1deab9523'
     'a63ba094dcd9bf0c0f98c6dce5825590b2cf7014834fd3bec5f88fe25d90228a'
-    '476d2d2e8e0376db56cf85ccb03ffc22c318dff7ea5bceb968891885785dac74'
+    '8a3363fd1e679e76da888a36467dcbd9bd008ee08c26629be809e65e9c585660'
 )
 depends=("${MINGW_PACKAGE_PREFIX}-expat"
          "${MINGW_PACKAGE_PREFIX}-libiconv"
